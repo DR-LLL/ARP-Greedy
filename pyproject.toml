@@ -1,0 +1,67 @@
+[build-system]
+requires = ["scikit-build-core>=0.11,<1", "pybind11>=3.0,<4"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "arp-greedy"
+version = "0.1.0"
+description = "Robust O(n log n)-operation greedy scheduling for the airplane refueling problem"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "ARP-Greedy contributors"}]
+keywords = ["scheduling", "optimization", "greedy", "convex-hull", "airplane-refueling"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: C++",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering :: Mathematics",
+  "Typing :: Typed",
+]
+
+[project.urls]
+Repository = "https://github.com/DR-LLL/ARP-Greedy"
+Issues = "https://github.com/DR-LLL/ARP-Greedy/issues"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.build-type = "Release"
+wheel.packages = ["python/arp_greedy"]
+install.components = ["Python"]
+sdist.include = [
+  "/CMakeLists.txt", "/cmake/*.in", "/include/**/*.hpp", "/src/*.hpp", "/src/*.cpp",
+  "/bindings/*.cpp", "/python/arp_greedy/*.py", "/python/arp_greedy/*.pyi",
+  "/python/arp_greedy/py.typed", "/tools/ci/*.sh",
+  "/README.md", "/assets/*.png", "/LICENSE", "/THIRD_PARTY_NOTICES.md",
+]
+sdist.exclude = [
+  "build*/**", "out/**", ".venv*/**", "dist/**", "benchmarks/**", "docs/**",
+  "tests/**", "tools/*.cpp", "tools/*.py", ".clang-format", ".gitignore",
+  ".github/workflows/ci.yml", "**/__pycache__/**", ".pytest_cache/**",
+]
+
+[tool.scikit-build.cmake.define]
+ARP_GREEDY_BUILD_PYTHON = "ON"
+BUILD_SHARED_LIBS = "OFF"
+
+[tool.cibuildwheel]
+build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
+skip = "*-musllinux_* *-win32 *-manylinux_i686"
+test-command = '''python -c "from arp_greedy import schedule; assert schedule([(1, 1), (2, 8)]).order == (1, 0)"'''
+
+[tool.cibuildwheel.linux]
+before-all = "bash {package}/tools/ci/install_boost.sh"
+environment = { ARP_GREEDY_BOOST_INCLUDE_DIR = "/opt/arp-boost/boost_1_85_0" }
+
+[tool.cibuildwheel.macos]
+before-all = "brew install boost"
+
+[tool.cibuildwheel.windows]
+before-all = "vcpkg install boost-multiprecision:x64-windows"
